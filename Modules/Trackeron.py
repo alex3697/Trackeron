@@ -41,7 +41,7 @@ class trackeron:
 
 
 
-	def single_file(self, bbox, video, input_format, keyboardinput):
+	def call_trackeron(self, bbox, video, input_format, keyboardinput):
 		video1 = cv2.VideoCapture(video)
 		fps = video1.get(cv2.CAP_PROP_FPS)
 
@@ -64,14 +64,16 @@ class trackeron:
 		frame_escogido = input_tcs * fps
 		increment = self.step
 		tc_salida, self.bbox1 = self.track(bbox, video1, frame_escogido, increment)
-		tc_salida = tc_salida * fps
+		video1 = cv2.VideoCapture(video)
+		tc_salida = tc_salida - 3*fps
 		tc_salida, self.bbox1 = self.track(self.bbox1, video1, tc_salida, 1)
 		tc_salida = tc_salida/fps
 		frame_escogido = input_tcs * fps
 		increment = -self.step
 		video1 = cv2.VideoCapture(video)
 		tc_entrada, self.bbox1 = self.track(bbox, video1, frame_escogido, increment)
-		tc_entrada = tc_entrada * fps
+		video1 = cv2.VideoCapture(video)
+		tc_entrada = tc_entrada + 3*fps
 		tc_entrada, self.bbox1 = self.track(self.bbox1, video1, tc_entrada, -1)
 		tc_entrada = tc_entrada/fps
 		tc_detection = []
@@ -181,8 +183,9 @@ class trackeron:
 		if success:        
 			(x, y, w, h) = [int(v*self.scale) for v in box]
 			cv2.rectangle(frame,(x, y), (w + x, y + h),(255,0,0),5)
+			self.bbox1 = box
 			cv2.imshow("Trackeron", frame)
-			return box
+			return self.bbox1
 
 		elif not success:
 			print('No object detection in that instant')

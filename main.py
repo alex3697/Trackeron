@@ -7,22 +7,22 @@ parser = argparse.ArgumentParser(description='')
 
 parser.add_argument('--input_txt', '-i', required=False, help='Input metadata path, format first line path of the video, second line format, third line time in the format, fourth line bbox, last line step')
 
-parser.add_argument('--format', '-f', default='frame', help='Input format, ms for miliseconds, s for seconds, utc for hour:minute:second')
+parser.add_argument('--format', '-f', default='utc', help='Input format, ms for miliseconds, s for seconds, utc for hour:minute:second')
 
-parser.add_argument('--analyzed', '-a', default='C:/Users/Alex/Desktop/Ugiat/object-tracker/Canal24h_-_28_julio_2019_-_05-40-01__-_00022.mp4', help='Media to analyze')
+parser.add_argument('--analyzed', '-a', default='C:/Users/Alex/Desktop/Ugiat/object-tracker/Trackeron/Canal24h_-_28_julio_2019_-_05-40-01__-_00022.mp4', help='Media to analyze')
 
-parser.add_argument('--input_keyboard', '-k', default='0:23:33.03', help='Input from keyboard: time')
+parser.add_argument('--input_keyboard', '-k', default='0:23:33.025', help='Input from keyboard: time')
 
 parser.add_argument('--bounding_box', '-b', default='108, 39, 309, 441', help='bounding box info')
 
-parser.add_argument('--step', '-s', default=10, help='step size')
+parser.add_argument('--step', '-s', default=15, help='step size')
 
 
 
 
 args = parser.parse_args()
 
-args.input_txt = 'C:/Users/Alex/Desktop/Ugiat/object-tracker/prueba.txt'
+#args.input_txt = 'C:/Users/Alex/Desktop/Ugiat/object-tracker/prueba.txt'
 
 
 if args.input_txt:
@@ -76,4 +76,4 @@ input_format = args.format
 
 keyboardinput = args.input_keyboard
 
-detections = detections.single_file(bbox, video, input_format, keyboardinput)
+detections.call_trackeron(bbox, video, input_format, keyboardinput)
