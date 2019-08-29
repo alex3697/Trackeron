@@ -1,4 +1,4 @@
-import sys, cv2, datetime    #la version con mas contrib
+import sys, cv2, datetime, numpy    #la version con mas contrib
 
 
 class trackeron:
@@ -7,6 +7,50 @@ class trackeron:
 	def __init__(self, scale, step):
 
 		self.scale, self.step = scale, int(step)
+
+
+	def print_frames(self, video1, timecode, frame_idx):
+		video = cv2.VideoCapture(video1)
+		frames = []
+
+		for i in range(16):
+
+			video.set(cv2.CAP_PROP_POS_FRAMES, frame_idx-8+i)
+
+			_, img = video.read()
+
+			img = cv2.resize(img, None, fx=0.3, fy=0.3, interpolation = cv2.INTER_LINEAR)
+
+			img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+			frames.append(img)
+
+
+
+		aux_list = []
+
+		for i in range(0, 16, 4):
+
+			vis = numpy.concatenate((frames[i], frames[i+1]), axis=1)
+
+			vis = numpy.concatenate((vis, frames[i+2]), axis=1)
+
+			vis = numpy.concatenate((vis, frames[i+3]), axis=1)
+
+			aux_list.append(vis)
+
+
+
+		vis = numpy.concatenate((aux_list[0], aux_list[1]), axis=0)
+
+		vis = numpy.concatenate((vis, aux_list[2]), axis=0)
+
+		vis = numpy.concatenate((vis, aux_list[3]), axis=0)
+
+		cv2.imwrite('C:/Users/Alex/Desktop/Ugiat/object-tracker/boundary_frames/'+str(timecode)+'.png', vis)
+		# cv2.imshow("hole",vis)
+		# cv2.waitKey(0)
+
 
 
 	def printresult(self, tc_detection, input_format, fps):
@@ -41,7 +85,7 @@ class trackeron:
 
 
 
-	def call_trackeron(self, bbox, video, input_format, keyboardinput):
+	def call_trackeron(self, bbox, video, input_format, keyboardinput, entrada):
 		video1 = cv2.VideoCapture(video)
 		fps = video1.get(cv2.CAP_PROP_FPS)
 
@@ -60,46 +104,52 @@ class trackeron:
 			frame = keyboardinput[2].split(".")
 			input_tcs = int(keyboardinput[0]) * 3600 + int(keyboardinput[1]) * 60 + int(frame[0]) + float(int(frame[1])/100 * fps)
 
-
-		frame_escogido = input_tcs * fps
-		increment = self.step
-		tc_salida, self.bbox1 = self.track(bbox, video1, frame_escogido, increment)
-		video1 = cv2.VideoCapture(video)
-		tc_salida = tc_salida - 3*fps
-		tc_salida, self.bbox1 = self.track(self.bbox1, video1, tc_salida, 1)
-		tc_salida = tc_salida/fps
-		frame_escogido = input_tcs * fps
-		increment = -self.step
-		video1 = cv2.VideoCapture(video)
-		tc_entrada, self.bbox1 = self.track(bbox, video1, frame_escogido, increment)
-		video1 = cv2.VideoCapture(video)
-		tc_entrada = tc_entrada + 3*fps
-		tc_entrada, self.bbox1 = self.track(self.bbox1, video1, tc_entrada, -1)
-		tc_entrada = tc_entrada/fps
-		tc_detection = []
-		tc_detection.append(tc_entrada)
-		tc_detection.append(tc_salida)
+		if entrada == 'output':
+			video1 = cv2.VideoCapture(video)
+			frame_escogido = input_tcs * fps
+			increment = self.step
+			tc_salida, self.bbox1 = self.track(bbox, video1, frame_escogido, increment)
+			video1 = cv2.VideoCapture(video)
+			tc_salida = tc_salida - 2*fps
+			tc_salida, self.bbox1 = self.track(self.bbox1, video1, tc_salida, 1)
+			tc_salida = tc_salida/fps
+			frame_escogido = input_tcs * fps
+			tc_detection = tc_salida
 
 
-		self.printresult(tc_detection, input_format, fps)
+		if entrada == 'input':
+			increment = -self.step
+			frame_escogido = input_tcs * fps
+			video1 = cv2.VideoCapture(video)
+			tc_entrada, self.bbox1 = self.track(bbox, video1, frame_escogido, increment)
+			video1 = cv2.VideoCapture(video)
+			tc_entrada = tc_entrada + 2*fps
+			tc_entrada, self.bbox1 = self.track(self.bbox1, video1, tc_entrada, -1)
+			tc_entrada = tc_entrada/fps
+			tc_detection = tc_entrada
+			
+		timecode = "00_24_34"
+		framedetectado = round(tc_detection*fps)
+
+		self.print_frames(video, timecode, framedetectado)
+		#self.printresult(tc_detection, input_format, fps)
 	
 	
-		pregunta = input('quieres preguntar por un tiempo determinado? Y/N: ')
+		#pregunta = input('quieres preguntar por un tiempo determinado? Y/N: ')
 
-		if pregunta == 'Y':
-			tiempo = int(input('pon el tiempo en segundos dentro del limite marcado anteriormente: '))
-			frame_escogido = round(input_tcs * fps)
-			frame_encuestion = round(tiempo * fps)
-			box = self.IsHere(bbox,video, frame_escogido, frame_encuestion,fps)
-			print(box)
+		# if pregunta == 'Y':
+		# 	tiempo = int(input('pon el tiempo en segundos dentro del limite marcado anteriormente: '))
+		# 	frame_escogido = round(input_tcs * fps)
+		# 	frame_encuestion = round(tiempo * fps)
+		# 	box = self.IsHere(bbox,video, frame_escogido, frame_encuestion,fps)
+		# 	print(box)
 
-		elif pregunta == 'N':
-			print('okey then :)')
+		# elif pregunta == 'N':
+		# 	print('okey then :)')
 
 
 	def track(self, bbox, video, frame_escogido, increment):
 		tracker = cv2.TrackerKCF_create()
-		
 
 		retries = 0
 		iteration = 0

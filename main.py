@@ -76,4 +76,4 @@ input_format = args.format
 
 keyboardinput = args.input_keyboard
 
-detections.call_trackeron(bbox, video, input_format, keyboardinput)
+detections.call_trackeron(bbox, video, input_format, keyboardinput, 'output')
